@@ -1,8 +1,16 @@
 import {Component, OnInit} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { fetchWeatherApi } from 'openmeteo';
 import { CommonModule } from '@angular/common';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { WeatherService } from './weather.service';
+import { WeatherDisplayComponent } from './weather-display.component';
 
 export interface WeatherPoint {
   time: Date;
@@ -12,103 +20,107 @@ export interface WeatherPoint {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, MatToolbarModule, MatCardModule, MatProgressSpinnerModule,
+            MatIconModule, MatFormFieldModule, MatInputModule, MatButtonModule, FormsModule, WeatherDisplayComponent],
   template: `
-    <h1>Welcome to {{title}}!</h1>
+    <mat-toolbar color="primary" class="app-toolbar">
+      <span>{{title}}</span>
+      <span class="toolbar-spacer"></span>
+      <mat-icon aria-hidden="false" aria-label="Wetter Icon">wb_sunny</mat-icon>
+    </mat-toolbar>
 
-    <div *ngIf="weather$ | async as weatherData; else loading">
-      <h2>Wetterdaten für Stuttgart</h2>
+    <div class="content-container">
+      <mat-card class="search-card">
+        <mat-card-header>
+          <mat-card-title style="color: white; margin-bottom: 20px">Wetter für deine Stadt</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="city-input">
+            <mat-label>Stadt</mat-label>
+            <input matInput [(ngModel)]="currentCity" placeholder="z.B. Stuttgart">
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="loadWeather()">
+            <mat-icon>search</mat-icon>
+            Wetter anzeigen
+          </button>
+        </mat-card-content>
+      </mat-card>
 
-      <div class="weather-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Zeit</th>
-              <th>Temperatur (°C)</th>
-              <th>Niederschlag (mm)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let point of weatherData.slice(0, 24)">
-              <td>{{ point.time | date:'dd.MM. HH:mm' }}</td>
-              <td>{{ point.temperature.toFixed(1) }}</td>
-              <td>{{ point.rain.toFixed(1) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      @if (weatherData$ | async; as weatherData) {
+        <app-weather-display [weatherData]="weatherData" [city]="currentCity"></app-weather-display>
+      } @else {
+        <div class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p class="loading-text">Wetterdaten werden geladen...</p>
+        </div>
+      }
     </div>
-
-    <ng-template #loading>
-      <p>Wetterdaten werden geladen...</p>
-    </ng-template>
 
     <router-outlet />
   `,
   styles: [`
-    .weather-container {
-      margin-top: 20px;
-      overflow-x: auto;
+    .app-toolbar {
+      box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+      margin-bottom: 20px;
     }
 
-    table {
-      border-collapse: collapse;
+    .toolbar-spacer {
+      flex: 1 1 auto;
+    }
+
+    .content-container {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .search-card {
+      margin-bottom: 20px;
+    }
+
+    .city-input {
       width: 100%;
-      max-width: 600px;
+      max-width: 300px;
+      margin-right: 16px;
     }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 50px;
     }
 
-    th {
-      background-color: #f2f2f2;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+    .loading-text {
+      margin-top: 20px;
+      color: rgba(0,0,0,.54);
     }
   `],
 })
 export class App implements OnInit {
-  async ngOnInit(): Promise<void> {
-    console.log("hello")
-    console.log("Stuttgart Wetterdaten abrufen...");
-    this.fetch("Stuttgart").then(() => console.log("Wetterdaten geladen"));
-  }
+  currentCity: string = "";
   protected title = 'SkyLine';
 
-  private weatherSub = new BehaviorSubject<WeatherPoint[] | null>(null);
-  weather$ = this.weatherSub.asObservable();
+  get weatherData$() {
+    return this.weatherService.weather$;
+  }
 
-  async fetch(city: string) {
-    // 1) Stadt → Koordinaten
-    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`)
-      .then(r => r.json());
-    if (!geoRes.results?.length) return;
-    const {latitude, longitude} = geoRes.results[0];
+  constructor(private weatherService: WeatherService) {}
 
-    // 2) Wetterdaten via SDK
-    const params = {
-      latitude,
-      longitude,
-      hourly: ["temperature_2m", "rain"],
-      timezone: "Europe/Berlin"
-    } as const;
-    const url = "https://api.open-meteo.com/v1/forecast";
-    const [response] = await fetchWeatherApi(url, params);
+  async ngOnInit(): Promise<void> {
+    console.log("hello");
+    console.log("Stuttgart Wetterdaten abrufen...");
+    this.currentCity = "Stuttgart";
+    this.loadWeather();
+  }
 
-    const offset = response.utcOffsetSeconds();
-    const hourly = response.hourly()!;
-    const points: WeatherPoint[] = [...Array((Number(hourly.timeEnd()) - Number(hourly.time())) / hourly.interval())]
-      .map((_, i) => ({
-        time: new Date((Number(hourly.time()) + i * hourly.interval() + offset) * 1000),
-        temperature: hourly.variables(0)!.valuesArray()![i],
-        rain: hourly.variables(1)!.valuesArray()![i]
-      }));
-
-    this.weatherSub.next(points);
+  loadWeather() {
+    if (this.currentCity) {
+      console.log(`Wetterdaten für ${this.currentCity} werden abgerufen...`);
+      this.weatherService.fetchWeather(this.currentCity).then(() => {
+        console.log("Wetterdaten geladen");
+      });
+    }
   }
 }
