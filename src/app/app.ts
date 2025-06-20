@@ -32,27 +32,31 @@ export interface WeatherPoint {
     <div class="content-container">
       <mat-card class="search-card">
         <mat-card-header>
-          <mat-card-title style="color: white; margin-bottom: 20px">Wetter für deine Stadt</mat-card-title>
+          <mat-card-title style="color: white; margin-bottom: 20px">Suche das Wetter für deine Stadt</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <mat-form-field appearance="outline" class="city-input">
-            <mat-label>Stadt</mat-label>
-            <input matInput [(ngModel)]="currentCity" placeholder="z.B. Stuttgart">
-          </mat-form-field>
-          <button mat-raised-button color="primary" (click)="loadWeather()">
-            <mat-icon>search</mat-icon>
-            Wetter anzeigen
-          </button>
+          <form (ngSubmit)="loadWeather()">
+            <mat-form-field appearance="outline" class="city-input">
+              <mat-label>Stadt</mat-label>
+              <input matInput [(ngModel)]="currentCity" name="city" placeholder="Stadt eingeben..." autocomplete="off" autofocus>
+            </mat-form-field>
+            <button mat-raised-button color="primary" type="submit">
+              <mat-icon>search</mat-icon>
+              Wetter suchen
+            </button>
+          </form>
         </mat-card-content>
       </mat-card>
 
-      @if (weatherData$ | async; as weatherData) {
-        <app-weather-display [weatherData]="weatherData" [city]="currentCity"></app-weather-display>
-      } @else {
+      @if (loading) {
         <div class="loading-container">
           <mat-spinner></mat-spinner>
           <p class="loading-text">Wetterdaten werden geladen...</p>
         </div>
+      } @else {
+        <ng-container *ngIf="weatherData$ | async as weatherData">
+          <app-weather-display [weatherData]="weatherData" [city]="searchedCity"></app-weather-display>
+        </ng-container>
       }
     </div>
 
@@ -101,6 +105,8 @@ export interface WeatherPoint {
 export class App implements OnInit {
   currentCity: string = "";
   protected title = 'SkyLine';
+  loading = false;
+  searchedCity: string = '';
 
   get weatherData$() {
     return this.weatherService.weather$;
@@ -117,8 +123,10 @@ export class App implements OnInit {
 
   loadWeather() {
     if (this.currentCity) {
-      console.log(`Wetterdaten für ${this.currentCity} werden abgerufen...`);
+      this.loading = true;
+      this.searchedCity = this.currentCity;
       this.weatherService.fetchWeather(this.currentCity).then(() => {
+        this.loading = false;
         console.log("Wetterdaten geladen");
       });
     }
