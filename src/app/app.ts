@@ -30,21 +30,26 @@ export interface WeatherPoint {
     </mat-toolbar>
 
     <div class="content-container">
-      <mat-card class="search-card">
-        <mat-card-header>
-          <mat-card-title style="color: white; margin-bottom: 20px">Suche das Wetter für deine Stadt</mat-card-title>
-        </mat-card-header>
+      <mat-card class="search-card modern-search-card">
         <mat-card-content>
-          <form (ngSubmit)="loadWeather()">
-            <mat-form-field appearance="outline" class="city-input">
-              <mat-label>Stadt</mat-label>
-              <input matInput [(ngModel)]="currentCity" name="city" placeholder="Stadt eingeben..." autocomplete="off" autofocus>
+          <form (ngSubmit)="loadWeather()" class="search-form">
+            <mat-form-field appearance="fill" class="city-input modern-input dark-input">
+              <button mat-icon-button matPrefix color="primary" type="submit" aria-label="Suchen" class="search-icon-btn">
+                <mat-icon>search</mat-icon>
+              </button>
+              <input matInput [(ngModel)]="currentCity" name="city" placeholder="Stadt, z.B. Berlin" autocomplete="off" autofocus (focus)="inputFocused=true" (blur)="inputFocused=false">
+              @if (currentCity) {
+                <button matSuffix mat-icon-button aria-label="Eingabe löschen" type="button" (click)="currentCity=''" style="margin-right: 10px">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
             </mat-form-field>
-            <button mat-raised-button color="primary" type="submit">
-              <mat-icon>search</mat-icon>
-              Wetter suchen
-            </button>
           </form>
+          @if (!inputFocused && !currentCity) {
+            <div class="search-hint">
+              Gib eine Stadt ein, um das Wetter zu suchen
+            </div>
+          }
         </mat-card-content>
       </mat-card>
 
@@ -63,6 +68,11 @@ export interface WeatherPoint {
     <router-outlet />
   `,
   styles: [`
+    .search-icon-btn {
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+
     .app-toolbar {
       box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
       margin-bottom: 20px;
@@ -84,7 +94,6 @@ export interface WeatherPoint {
 
     .city-input {
       width: 100%;
-      max-width: 300px;
       margin-right: 16px;
     }
 
@@ -100,6 +109,47 @@ export interface WeatherPoint {
       margin-top: 20px;
       color: rgba(0,0,0,.54);
     }
+
+    .modern-search-card {
+      background-color: #121212;
+      border-radius: 8px;
+      padding: 16px;
+      color: white;
+    }
+
+    .search-form {
+
+      display: flex;
+      align-items: center;
+    }
+
+    .modern-input {
+      flex: 1;
+      margin-right: 8px;
+      background-color: #1e1e1e;
+      border: none;
+      border-radius: 4px;
+      color: white;
+    }
+
+    .dark-input {
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+
+    .search-hint {
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .modern-search-btn {
+      min-width: 64px;
+      height: 36px;
+      border-radius: 4px;
+      text-transform: none;
+    }
   `],
 })
 export class App implements OnInit {
@@ -107,6 +157,7 @@ export class App implements OnInit {
   protected title = 'SkyLine';
   loading = false;
   searchedCity: string = '';
+  inputFocused: boolean = false;
 
   get weatherData$() {
     return this.weatherService.weather$;

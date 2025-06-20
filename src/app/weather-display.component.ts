@@ -17,7 +17,7 @@ import { WeatherPoint } from './weather.service';
             <mat-icon>location_on</mat-icon>
             Wetterdaten für {{city}}
           </mat-card-title>
-          <mat-card-subtitle>
+          <mat-card-subtitle style="margin-bottom: 10px">
             Die nächsten 24 Stunden
           </mat-card-subtitle>
         </mat-card-header>
