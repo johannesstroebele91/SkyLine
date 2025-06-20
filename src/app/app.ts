@@ -29,29 +29,21 @@ export interface WeatherPoint {
       <mat-icon aria-hidden="false" aria-label="Wetter Icon">wb_sunny</mat-icon>
     </mat-toolbar>
 
+
     <div class="content-container">
-      <mat-card class="search-card modern-search-card">
-        <mat-card-content>
-          <form (ngSubmit)="loadWeather()" class="search-form">
-            <mat-form-field appearance="fill" class="city-input modern-input dark-input">
-              <button mat-icon-button matPrefix color="primary" type="submit" aria-label="Suchen" class="search-icon-btn">
-                <mat-icon>search</mat-icon>
-              </button>
-              <input matInput [(ngModel)]="currentCity" name="city" placeholder="Stadt, z.B. Berlin" autocomplete="off" autofocus (focus)="inputFocused=true" (blur)="inputFocused=false">
-              @if (currentCity) {
-                <button matSuffix mat-icon-button aria-label="Eingabe löschen" type="button" (click)="currentCity=''" style="margin-right: 10px">
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-            </mat-form-field>
-          </form>
-          @if (!inputFocused && !currentCity) {
-            <div class="search-hint">
-              Gib eine Stadt ein, um das Wetter zu suchen
-            </div>
+      <form (ngSubmit)="loadWeather()" class="search-form">
+        <mat-form-field appearance="fill" class="city-input modern-input dark-input">
+          <button mat-icon-button matPrefix color="primary" type="submit" aria-label="Suchen" class="search-icon-btn">
+            <mat-icon>search</mat-icon>
+          </button>
+          <input matInput [(ngModel)]="currentCity" name="city" placeholder="Stadt, z.B. Berlin" autocomplete="off" autofocus (focus)="inputFocused=true" (blur)="inputFocused=false" >
+          @if (currentCity) {
+            <button matSuffix mat-icon-button aria-label="Eingabe löschen" type="button" (click)="currentCity=''" style="margin-right: 10px">
+              <mat-icon>close</mat-icon>
+            </button>
           }
-        </mat-card-content>
-      </mat-card>
+        </mat-form-field>
+      </form>
 
       @if (loading) {
         <div class="loading-container">
@@ -74,7 +66,7 @@ export interface WeatherPoint {
     }
 
     .app-toolbar {
-      box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+      box-shadow: 0 3px 5px -1px rgba(0, 0, 0, .2), 0 6px 10px 0 rgba(0, 0, 0, .14), 0 1px 18px 0 rgba(0, 0, 0, .12);
       margin-bottom: 20px;
     }
 
@@ -107,18 +99,17 @@ export interface WeatherPoint {
 
     .loading-text {
       margin-top: 20px;
-      color: rgba(0,0,0,.54);
+      color: rgba(0, 0, 0, .54);
     }
 
     .modern-search-card {
-      background-color: #121212;
+      background-color: red;
       border-radius: 8px;
       padding: 16px;
       color: white;
     }
 
     .search-form {
-
       display: flex;
       align-items: center;
     }
@@ -126,7 +117,6 @@ export interface WeatherPoint {
     .modern-input {
       flex: 1;
       margin-right: 8px;
-      background-color: #1e1e1e;
       border: none;
       border-radius: 4px;
       color: white;
@@ -134,14 +124,14 @@ export interface WeatherPoint {
 
     .dark-input {
       &::placeholder {
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(142, 142, 142, 0.7);
       }
     }
 
     .search-hint {
       margin-top: 8px;
       font-size: 14px;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(28, 28, 28, 0.7);
     }
 
     .modern-search-btn {
